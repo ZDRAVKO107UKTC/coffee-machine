@@ -26,12 +26,26 @@ public class InventoryService {
 
     @Transactional
     public Inventory refill(RefillInventoryRequest req) {
+        if (req == null) {
+            throw new IllegalArgumentException("Refill request body is required");
+        }
+
         Inventory inv = getOrCreateDefault();
-        inv.setWaterMl(inv.getWaterMl() + req.getWaterMl());
-        inv.setMilkMl(inv.getMilkMl() + req.getMilkMl());
-        inv.setBeansG(inv.getBeansG() + req.getBeansG());
-        inv.setSugarG(inv.getSugarG() + req.getSugarG());
-        inv.setCups(inv.getCups() + req.getCups());
+
+        inv.setWaterMl(safeAdd(inv.getWaterMl(), req.getWaterMl(), "waterMl"));
+        inv.setMilkMl(safeAdd(inv.getMilkMl(), req.getMilkMl(), "milkMl"));
+        inv.setBeansG(safeAdd(inv.getBeansG(), req.getBeansG(), "beansG"));
+        inv.setSugarG(safeAdd(inv.getSugarG(), req.getSugarG(), "sugarG"));
+        inv.setCups(safeAdd(inv.getCups(), req.getCups(), "cups"));
+
         return inventoryRepository.save(inv);
+    }
+
+    private int safeAdd(int current, int add, String field) {
+        try {
+            return Math.addExact(current, add);
+        } catch (ArithmeticException ex) {
+            throw new IllegalArgumentException("Refill amount is too large for field: " + field);
+        }
     }
 }

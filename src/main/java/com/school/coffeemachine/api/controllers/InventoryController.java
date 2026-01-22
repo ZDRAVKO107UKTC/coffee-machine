@@ -4,8 +4,10 @@ import com.school.coffeemachine.api.dto.InventoryResponse;
 import com.school.coffeemachine.api.dto.RefillInventoryRequest;
 import com.school.coffeemachine.domain.Inventory;
 import com.school.coffeemachine.service.InventoryService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,7 +26,7 @@ public class InventoryController {
     }
 
     @PostMapping("/refill")
-    public InventoryResponse post(RefillInventoryRequest req) {
+    public InventoryResponse post(@Valid @RequestBody RefillInventoryRequest req) {
         Inventory inv = inventoryService.refill(req);
         return new InventoryResponse(inv.getWaterMl(), inv.getMilkMl(), inv.getBeansG(), inv.getSugarG(), inv.getCups());
     }
