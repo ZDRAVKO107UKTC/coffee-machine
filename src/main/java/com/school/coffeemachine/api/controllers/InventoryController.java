@@ -1,4 +1,4 @@
-package com.school.coffeemachine.controllers;
+package com.school.coffeemachine.api.controllers;
 
 import com.school.coffeemachine.api.dto.InventoryResponse;
 import com.school.coffeemachine.api.dto.RefillInventoryRequest;
