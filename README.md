@@ -1,72 +1,104 @@
-
+``` md
 # Coffee Machine API
 
-A Jakarta EE and Spring Boot powered backend application designed to manage coffee brewing processes, recipes, and inventory. This project provides a robust RESTful API for controlling a virtual coffee machine.
+A Spring Boot backend application designed to manage coffee brewing processes, recipes, and inventory. The API controls a virtual coffee machine, including **payments** (pay in **BGN** or **EUR**, change returned in **EUR**).
 
-## 🚀 Features
+## Features
 
-- **Brewing Management**: Initiate coffee brewing based on existing recipes.
-- **Recipe Management**: Create, list, and delete coffee recipes with specific ingredients.
-- **Inventory Tracking**: Monitor and refill ingredients (water, milk, beans, sugar, and cups).
-- **Health Monitoring**: Simple endpoint to check system availability.
+- **Brewing Management**: Brew coffee based on a recipe and payment.
+- **Payments (EUR base)**:
+  - Recipe prices are treated as **EUR**
+  - Customers can pay in **EUR** or **BGN**
+  - Change is returned in **EUR**
+- **Recipe Management**: Create, list, fetch, and delete recipes.
+- **Inventory Tracking**: View and refill ingredients (water, milk, beans, sugar, cups).
+- **Health Monitoring**: Endpoint to check system availability.
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Java 17/23**
-- **Spring Boot 3.3.5** (Web, Data JPA, Validation)
-- **Jakarta EE**
+- **Spring Boot** (Web, Data JPA, Validation)
+- **Jakarta EE** imports
 - **Spring Data JPA** (Hibernate)
 - **PostgreSQL**
 - **Lombok**
 - **Docker Compose**
 
-## 📋 Prerequisites
+## Prerequisites
 
 - **JDK 17** or higher
 - **Maven 3.x**
-- **Docker** (for running the database)
+- **Docker** (optional, for PostgreSQL)
 
-## ⚙️ Getting Started
+## Getting Started
 
-### 1. Database Setup
-The project uses PostgreSQL. You can quickly spin up the database using the provided Docker Compose file:
+### 1) Database Setup
+
+The project uses PostgreSQL. Start it with Docker Compose:
 ```
 
 bash docker-compose up -d```
 
-### 2. Build and Run
-Use the Maven wrapper to start the application:
+### 2) Build and Run
 ```
 
 bash ./mvnw spring-boot:run``` 
-The API will be available at `http://localhost:8080`.
 
-## 🔌 API Endpoints
+API base URL: `http://localhost:8080`
 
-☕ Brewing
-*   `POST /api/brew` - Brew a coffee by providing a `recipeId`.
-    *   *Note: This process automatically deducts ingredients from the inventory.*
+## API Endpoints
 
-### 📖 Recipes
-*   `GET /api/recipes` - List all available coffee recipes.
-*   `POST /api/recipes` - Create a new recipe (requires name, price, water, milk, beans, and sugar).
-*   `GET /api/recipes/{id}` - Get details of a specific recipe.
-*   `DELETE /api/recipes/{id}` - Remove a recipe.
+### Brewing + Payment
 
-### 📦 Inventory
-*   `GET /api/inventory` - View current levels of water, milk, beans, sugar, and cups.
-*   `POST /api/inventory/refill` - Add supplies to the machine.
+- `POST /api/brew` — Brew a coffee (deducts ingredients) and processes payment.
 
-### 💓 Health
-*   `GET /api/health` - Check if the service is up and running.
+**Request body example (pay in BGN):**
+```
 
-## 📁 Project Structure
+json { "recipeId": 1, "paymentAmount": 5.00, "paymentCurrency": "BGN" }```
 
-- `com.school.coffeemachine.controllers`: REST API layer.
-- `com.school.coffeemachine.service`: Core business logic (Brewing logic, Inventory management).
-- `com.school.coffeemachine.domain`: JPA Entities representing the database schema.
-- `com.school.coffeemachine.repository`: Data access layer.
+**Request body example (pay in EUR):**
+```
 
-## 🧪 Running Tests
-To execute the test suite, run:
+json { "recipeId": 1, "paymentAmount": 3.00, "paymentCurrency": "EUR" }``` 
+
+**Success response example (includes change in EUR):**
+```
+
+json { "status": "SUCCESS", "message": "Coffee brewed successfully.", "changeEur": 0.06 }```
+
+**Possible errors:**
+- `409 INSUFFICIENT_PAYMENT` — payment not enough (message includes missing EUR)
+- `409 INSUFFICIENT_INVENTORY` — not enough ingredients/cups
+- `400 VALIDATION_ERROR` — invalid request body
+
+### Recipes
+
+- `GET /api/recipes` — List all recipes
+- `POST /api/recipes` — Create a recipe
+- `GET /api/recipes/{id}` — Get recipe details
+- `DELETE /api/recipes/{id}` — Delete a recipe
+
+### Inventory
+
+- `GET /api/inventory` — View current inventory
+- `POST /api/inventory/refill` — Refill inventory
+
+**Refill request example:**
+```
+
+json { "waterMl": 500, "milkMl": 200, "beansG": 100, "sugarG": 50, "cups": 10 }``` 
+
+### Health
+
+- `GET /api/health` — Service status
+
+## Project Structure
+
+- `com.school.coffeemachine.api.controllers`: REST controllers
+- `com.school.coffeemachine.service`: Business logic (brewing, inventory, exchange rates)
+- `com.school.coffeemachine.domain`: JPA entities
+- `com.school.coffeemachine.repository`: Data access layer
+- `com.school.coffeemachine.exception`: API error + exception handling
+
 ```
